@@ -1,0 +1,65 @@
+computer scientists and engineers have created different file systems that organize the bits in a hard drive as per a standard,
+so that information stored in these bits can be interpreted easily.
+
+the File Allocation Table creates a table that indexes the location of bits that are allocated to different files. 
+Data structures of the FAT file system:
+  1-Clusters 2-Directory 3-File Allocation Table
+Clusters:
+
+A cluster is a basic storage unit of the FAT file system. Each file stored on a storage device can be considered a group of clusters containing bits of information.
+Directory:
+A directory contains information about file identification, like file name, starting cluster, and filename length.
+File Allocation Table:
+
+The File Allocation Table is a linked list of all the clusters. It contains the status of the cluster and the pointer to the next cluster in the chain.
+
+In summary, the bits that make up a file are stored in clusters. All the filenames on a file system, their starting clusters,
+and their lengths are stored in directories. And the location of each cluster on the disk is stored in the File Allocation Table.
+We can see that we started with a raw disk composed of bits and organized it to define what group of bits refers to what file stored on the disk.
+
+
+Note : The FAT file format divides the available disk space into clusters for more straightforward addressing
+
+FAT was initially developed with 8-bit cluster addressing
+
+Theoretically, FAT12 used 12-bit cluster addressing for a maximum of 4096 clusters(2^12).
+FAT16 used 16-bit cluster addressing for a maximum of 65,536 clusters (2^16). In the case of FAT32, the actual bits used to address clusters are 28, 
+so the maximum number of clusters is actually 268,435,456 or 2^28. 
+
+Operating System (OS) is a layer between the hardware and the applications.
+From the application's perspective, the OS provides an interface to access the different hardware components,
+such as CPU, RAM, and disk storage. Examples of OS are Android, FreeBSD, Linux, macOS, and Windows.
+
+
+The chances of coming across a FAT12 filesystem are very rare nowadays. FAT16 and FAT32 are still used in some places, like USB drives, SD cards, or Digital cameras. However,
+the maximum file size and volume size (4GB - 1 file size for both FAT16 and FAT32) are limiting factors that have reduced their usage. 
+
+The exFAT file system is now the default for SD cards larger than 32GB. 
+The exFAT file system supports a cluster size of 4KB to 32MB. 
+It has a maximum file size and a maximum volume size of 128PB (Petabytes). 
+ It can have a maximum of 2,796,202 files per directory
+
+
+The NTFS file system : 
+As observed in the previous task, the FAT file system is a very basic file system. 
+It does the job when it comes to organizing our data, but it offers little more in terms of security, reliability, and recovery capabilities.
+It also has certain limitations when it comes to file and volume sizes. Hence, Microsoft developed a newer file system called the New Technology File System (NTFS) to add these features.
+This file system was introduced in 1993 with the Windows NT 3.1. However, it became mainstream since Windows XP. The NTFS file system resolves many issues present in the FAT file system and introduces a lot of new features.
+We will discuss some of the features below.
+
+1-Journaling 2-Access Controls 3-Volume Shadow Copy 4-Alternate Data Streams 5-Master File Table 6-$MFT 7-$LOGFILE 8-$UsnJrnl 9-MFT Explorer
+
+
+1-Journaling
+The NTFS file system keeps a log of changes to the metadata in the volume.
+This feature helps the system recover from a crash or data movement due to defragmentation.
+This log is stored in $LOGFILE in the volume's root directory. Hence the NTFS file system is called a journaling file system.
+
+2-Access Controls
+The FAT file system did not have access controls based on the user. 
+The NTFS file system has access controls that define the owner of a file/directory and permissions for each user. 
+
+
+
+
+
