@@ -1,0 +1,211 @@
+Volume Shadow Copy
+
+The NTFS file system keeps track of changes made to a file using a feature called Volume Shadow Copies.
+Using this feature, a user can restore previous file versions for recovery or system restore.
+In recent ransomware attacks, ransomware actors have been noted to delete the shadow copies on a victim's file systems to prevent them from recovering their data. 
+
+Alternate Data Streams
+
+A file is a stream of data organized in a file system.
+Alternate data streams (ADS) is a feature in NTFS that allows files to have multiple streams of data stored in a single file.
+Internet Explorer and other browsers use Alternate Data Streams to identify files downloaded from the internet (using the ADS Zone Identifier).
+Malware has also been observed to hide their code in ADS. 
+
+Master File Table
+
+Like the File Allocation Table, there is a Master File Table in NTFS. However, the Master File Table, or MFT, is much more extensive than the File Allocation Table. 
+It is a structured database that tracks the objects stored in a volume. Therefore, we can say that the NTFS file system data is organized in the Master File Table. 
+From a forensics point of view, the following are some of the critical files in the MFT: 
+
+1-$MFT
+
+The $MFT is the first record in the volume. The Volume Boot Record (VBR) points to the cluster where it is located.
+$MFT stores information about the clusters where all other objects present on the volume are located. This file contains a directory of all the files present on the volume.
+
+
+2-$LOGFILE
+
+The $LOGFILE stores the transactional logging of the file system. It helps maintain the integrity of the file system in the event of a crash. 
+
+3-$UsnJrnl
+
+It stands for the Update Sequence Number (USN) Journal. It is present in the $Extend record. 
+It contains information about all the files that were changed in the file system and the reason for the change. It is also called the change journal. 
+
+
+MFT Explorer
+
+MFT Explorer is one of Eric Zimmerman's tools used to explore MFT files. It is available in both command line and GUI versions. We will be using the CLI version for this task.
+
+Examples: MFTECmd.exe -f "C:\Temp\SomeMFT" --csv "c:\temp\out" --csvf MyOutputFile.csv
+          MFTECmd.exe -f "C:\Temp\SomeMFT" --csv "c:\temp\out"
+          MFTECmd.exe -f "C:\Temp\SomeMFT" --json "c:\temp\jsonout"
+          MFTECmd.exe -f "C:\Temp\SomeMFT" --body "c:\temp\bout" --bdl c
+          MFTECmd.exe -f "C:\Temp\SomeMFT" --de 5-5
+
+
+MFTECmd parses data from the different files created by the NTFS file system like $MFT, $Boot, etc.
+The above screenshot shows the available options for parsing MFT files. For parsing the $MFT file, we can use the following command:
+
+MFTECmd.exe -f <path-to-$MFT-file> --csv <path-to-save-results-in-csv>
+
+You can then use the EZviewer tool inside the EZtools folder to view the output of MFTECmd, or to view CSV
+
+What is the size of the cluster for the volume from which this triage was taken?
+here we need to parse the $boot file so we get the size of the cluster 
+
+Deleted files and Data recovery:
+
+Understanding the file systems makes it easier to know how files are deleted, recovered, and wiped.
+As we learned in the previous two tasks, a file system stores the location of a file on the disk in a table or a database.
+When we delete a file from the file system, the file system deletes the entries that store the file's location on the disk.
+For the file system, the location where the file existed is now available for writing or unallocated.
+However, the file contents on disk are still there, as long as they are not overwritten by the file system while copying another file or by the disk firmware while performing maintenance on the disk.
+
+Disk Image:
+
+A disk image file is a file that contains a bit-by-bit copy of a disk drive.
+A bit-by-bit copy saves all the data in a disk image file, including the metadata, in a single file.
+Thus, while performing forensics, one can make several copies of the physical evidence, i.e., the disk, and use them for investigation.
+This helps in two ways.
+1) The original evidence is not contaminated while performing forensics,
+and 2) The disk image file can be copied to another disk and analyzed without using specialized hardware.
+
+Where to find artifacts present in the file system to perform forensic analysis?
+
+Windows Prefetch files
+
+When a program is run in Windows, it stores its information for future use.
+This stored information is used to load the program quickly in case of frequent use.
+This information is stored in prefetch files which are located in the C:\Windows\Prefetch directory.
+
+
+Prefetch files have an extension of .pf.
+1-Prefetch files contain the last run times of the application,
+2-the number of times the application was run, and any files and device handles used by the file.
+Thus it forms an excellent source of information about the last executed programs and files.
+
+using admin privilege : 
+We can use Prefetch Parser (PECmd.exe) from Eric Zimmerman's tools for parsing Prefetch files and extracting data
+
+To run Prefetch Parser on a file and save the results in a CSV, we can use the following command:
+
+PECmd.exe -f <path-to-Prefetch-files> --csv <path-to-save-csv>
+Similarly, for parsing a whole directory, we can use the following command:
+
+PECmd.exe -d <path-to-Prefetch-directory> --csv <path-to-save-csv>
+
+We can use this information to answer the questions at the end.
+
+
+Windows 10 Timeline :
+
+Windows 10 stores ""\\  recently used applications and files  //"" in an SQLite database called the Windows 10 Timeline.
+This data can be a source of information about the last " executed programs. "
+It contains the application that was executed and the focus time of the application. The Windows 10 timeline can be found at the following location: 
+
+C:\Users\<username>\AppData\Local\ConnectedDevicesPlatform\{randomfolder}\ActivitiesCache.db
+
+ Database files are typically found at 'C:\Users\<profile>\AppData\Local\ConnectedDevicesPlatform\L.<profile>\ActivitiesCache.db'
+
+We can use Eric Zimmerman's WxTCmd.exe for parsing Windows 10 Timeline
+
+We can use the following command to run WxTCmd:
+
+WxTCmd.exe -f <path-to-timeline-file> --csv <path-to-save-csv>
+
+Windows Jump Lists :
+Windows introduced jump lists to help users go directly to their recently used files from the taskbar.
+We can view jumplists by right-clicking an application's icon in the taskbar, and it will show us the recently opened files in that application.
+This data is stored in the following directory: 
+
+C:\Users\<username>\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations
+
+this folder and another one are hidden and only can be viwed by cmdline : dir /pramaeeter انا مش فاكره دور عليه and they are two folder
+
+
+Jumplists include information about the applications executed, first time of execution, and last time of execution of the application against an AppID. 
+
+
+We can use the following command to parse Jumplists using JLECmd.exe:
+
+JLECmd.exe -f <path-to-Jumplist-file> --csv <path-to-save-csv>
+
+Shortcut Files
+
+Windows creates a shortcut file for each file opened either locally or remotely. The shortcut files contain information about the first and last opened times of the file and the path of the opened file, along with some other data. Shortcut files can be found in the following locations:
+
+C:\Users\<username>\AppData\Roaming\Microsoft\Windows\Recent\
+
+C:\Users\<username>\AppData\Roaming\Microsoft\Office\Recent\
+
+We can use Eric Zimmerman's LECmd.exe (Lnk Explorer) to parse Shortcut files. When we run the LECmd.exe, we see the following options:
+
+We can use the following command to parse shortcut files using LECmd.exe:
+
+LECmd.exe -f <path-to-shortcut-files> --csv <path-to-save-csv>
+
+The creation date of the shortcut file points to the date/time when the file was first opened.
+The date/time of modification of the shortcut file points to the last time the file was accessed. 
+
+IE/Edge history
+
+An interesting thing about the IE/Edge browsing history is that 
+1-it includes files opened in the system as well,
+2-whether those files were opened using the browser or not. Hence,
+3-a valuable source of information on opened files in a system is the IE/Edge history.
+We can access the history in the following location: C:\Users\<username>\AppData\Local\Microsoft\Windows\WebCache\WebCacheV*.dat
+
+C:\Users\<username>\AppData\Local\Microsoft\Windows\WebCache\WebCacheV*.dat
+
+Jump Lists
+
+As we already learned in the last task,
+Jump Lists create a list of the last opened files.
+This information can be used to identify both : 
+1- the last executed programs and the last opened files in a system. 
+
+Remembering from the last task, Jump Lists are present at the following location:
+
+C:\Users\<username>\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations
+
+
+
+
+Setupapi dev logs for USB devices
+
+When any new device is attached to a system, information related to the setup of that device is stored in the setupapi.dev.log. This log is present at the following location:
+
+C:\Windows\inf\setupapi.dev.log
+
+This log contains the device serial number and the first/last times when the device was connected. 
+
+Shortcut files :
+These shortcut files can sometimes provide us with information about connected USB devices.
+It can provide us with information about the volume name, type, and serial number. Recalling from the previous task, this information can be found at:
+
+C:\Users\<username>\AppData\Roaming\Microsoft\Windows\Recent\
+
+C:\Users\<username>\AppData\Roaming\Microsoft\Office\Recent\
+
+
+
+
+Test : 
+
+How many times was gkape.exe executed? use PECmd.exe
+What is the last execution time of gkape.exe   use PECmd.exe
+
+When Notepad.exe was opened on 11/30/2021 at 10:56, how long did it remain in focus?  use WxTCmd.exe for parsing Windows 10 Timeline  use Ezviewer to open the file .csv and look at duration 
+
+What program was used to open C:\Users\THM-4n6\Desktop\KAPE\KAPE\ChangeLog.txt? use JLECmd.exe to parse Jump Lists 
+after triage look at the field :  AppidDescription  which will be related to Field : Path the target file that has been executed by AppidDescription
+
+for note : the timestamps as well to understand the order of execution
+
+When was the folder C:\Users\THM-4n6\Desktop\regripper last opened?   use LECmd.exe (Lnk Explorer)      and find field : Last-modified
+When was the above-mentioned folder first opened?use LECmd.exe (Lnk Explorer) and find field : TargetAccessed
+
+
+
+
